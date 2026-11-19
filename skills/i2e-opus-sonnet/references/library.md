@@ -2,16 +2,19 @@
 
 All three I2E workflows read the latest merged catalog from `main` in the public `bowang-solutionstream/i2e-team` repository. The coordinator owns intake and post-delivery reflection. Records are evidence and suggestions. Authority and project acceptance come from the user and the project.
 
-## Pin the catalog at intake
+## Required fetch before work
 
-Set `run` to this session's private directory outside the product checkout. For each new run:
+Before every new I2E run and whenever a later session resumes one, the coordinator fetches the latest merged properties and rules from `main`. Do this before project inspection, planning, dispatch or edits, including read-only runs. Set `run` to the private run directory outside the product, and `skill` to the directory of the active skill containing `scripts/fetch_library.py`.
 
 ```sh
-git clone --quiet --single-branch --branch main https://github.com/bowang-solutionstream/i2e-team.git "$run/library"
-python3 -B "$run/library/tools/library.py" catalog
+intake=$(python3 -B "$skill/scripts/fetch_library.py" "$run") || exit 1
+library="$intake/library"
+cat "$intake/catalog.json"
 ```
 
-Record the returned revision and the matching IDs. Share scoped adopted properties with the planner as test oracles and adopted rules with reviewers when their triggers match. Label candidate hints as such. Ignore retired records during selection. Resume against the pinned revision. If the fetch fails, record the known revision and its age, or mark the lookup unavailable.
+The installed parser validates records directly from the fetched Git objects. Continue only when the command succeeds. Record the returned snapshot path, the `revision` in `catalog.json` and the relevant record IDs. Read the matching Markdown in `library/properties/` and `library/rules/`. A failed fetch or invalid catalog blocks the run. Report the failure and retry the fetch before continuing. Earlier receipts remain evidence of earlier work. Keep the same snapshot across rounds of this invocation. On resumption, retain the previous receipt and reconcile newly applicable checks with the plan before continuing.
+
+Pass adopted properties to planners as scoped test oracles and adopted rules to reviewers when their triggers match the diff. Label candidates as suggestions and skip retired entries.
 
 ## Reflect at successful handoff
 
@@ -22,7 +25,7 @@ Create a private drafts directory. Use `templates/property.md` or `templates/rul
 ```sh
 mkdir -p "$run/drafts/properties" "$run/drafts/rules"
 # Set workflow to the skill that delivered, i2e-fable-opus or i2e-opus-sonnet.
-python3 -B "$run/library/tools/library.py" reflect --workflow "$workflow" \
+python3 -B "$library/tools/library.py" reflect --workflow "$workflow" \
   --entries "$run/drafts" --handoff "$run/handoff.json"
 ```
 

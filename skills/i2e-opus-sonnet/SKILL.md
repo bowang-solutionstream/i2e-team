@@ -5,6 +5,8 @@ description: Run an Issue-to-Edit workstream with Opus 5.5 Max decisions and rev
 
 # I2E Opus Sonnet
 
+First, run the [library fetch](scripts/fetch_library.py) before project inspection, planning, dispatch or edits on every new or resumed invocation. Continue only after the latest properties and rules from `main` validate. Record the fetched revision and selected IDs. At successful handoff, reflect on verified findings and publish any new public-safe properties or rules. An empty or duplicate reflection creates no commit. Follow the [intake and handoff procedure](references/library.md).
+
 Deliver the requested outcome with one continuing Issue-to-Edit contract. This
 package contains the workflow, issue, engineering, verification, and handoff
 guidance; no other workflow skill or issue-to-edit repository is required.
@@ -26,7 +28,7 @@ missing decision that materially changes the outcome or an action's authority.
 Inspect the worktree and applicable repository guidance, then the relevant source,
 issue, or PR. Note the repository's verification assets, such as a `verify` skill, a
 feature map, or `REVIEW.md`, and look up the matching properties and rules in the
-shared [library](references/library.md). Pin its current `main` revision and record the relevant IDs. Read enough to establish the behavior and
+shared [library](references/library.md). Use the revision fetched before this invocation and record the relevant IDs. Read enough to establish the behavior and
 proof; do not tour every document. Preserve unrelated changes. For substantial work,
 maintain one compact record using [the run record](templates/run-record.md); reuse
 it across agents. Tiny edits need only a clear outcome and proportionate evidence.

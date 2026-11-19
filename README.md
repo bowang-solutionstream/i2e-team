@@ -46,7 +46,7 @@ Claude Code session afterwards to load the skill and agents.
 
 ## The shared property and rule library
 
-All three I2E workflows fetch the latest merged catalog from [main](https://github.com/bowang-solutionstream/i2e-team/tree/main) at intake. After successful delivery, the coordinator publishes public-safe properties and lessons from observed misses to their category branches and merges them into the catalog. A run with no new findings creates no commit. The [library guide](skills/i2e-opus-sonnet/references/library.md) covers the commands, evidence and retry behavior.
+Before starting or resuming work, all three I2E workflows must fetch and validate the latest merged catalog from [main](https://github.com/bowang-solutionstream/i2e-team/tree/main) at intake. After successful delivery, the coordinator publishes public-safe properties and lessons from observed misses to their category branches and merges them into the catalog. A run with no new findings creates no commit. The [library guide](skills/i2e-opus-sonnet/references/library.md) covers the commands, evidence and retry behavior.
 
 ## Update
 
