@@ -26,7 +26,7 @@ INVENTORY = {
     "scripts/i2e.py", "scripts/v2_contract.py", "scripts/v2_runtime.py",
     "scripts/worker_adapter.py", "scripts/github_adapter.py", "scripts/verify_labels.py",
     "scripts/critical_flow.py", "scripts/critical_issues.py", "scripts/critical_routing.py",
-    "scripts/critical_speckit.py", "references/critical-four-rounds.md",
+    "scripts/critical_speckit.py", "references/critical-four-rounds.md", "scripts/fetch_library.py", "scripts/records.py",
     "references/runtime.md", "references/runtime-v1.md", "references/settings.md",
     "references/teaching.md", "references/records-v2.md", "references/policy.md",
     "references/execution.md", "references/verification.md", "references/delivery.md", "references/adoption.md",
@@ -85,9 +85,10 @@ class PackageV2Tests(unittest.TestCase):
 
     def test_older_complete_package_verifies_but_partial_role_pair_is_rejected(self):
         packager = runpy.run_path(str(PACKAGER))
-        previous = {p for p in INVENTORY if not p.startswith(("scripts/critical_", "references/critical-"))}
+        pre_intake = INVENTORY - {"scripts/fetch_library.py", "scripts/records.py"}
+        previous = {p for p in pre_intake if not p.startswith(("scripts/critical_", "references/critical-"))}
         legacy_names = previous - {"agents/i2e_team_sol.toml", "agents/i2e_team_astra.toml"}
-        for label, names, valid in (("pre-rename", INVENTORY, True), ("previous", previous, True), ("original", legacy_names, True),
+        for label, names, valid in (("pre-intake", pre_intake, True), ("previous", previous, True), ("original", legacy_names, True),
                                     ("partial", legacy_names | {"agents/i2e_team_sol.toml"}, False)):
             with self.subTest(label=label):
                 dest, extraction = self.root / label, self.root / (label + "-readback")
@@ -141,7 +142,7 @@ class PackageV2Tests(unittest.TestCase):
         self.assertEqual(before, (fresh / "manifest.json").read_bytes())
 
     def test_refuses_broken_link_secret_and_unsafe_file_aliases(self):
-        for scenario in ("broken-link", "secret", "symlink", "hardlink"):
+        for scenario in ("broken-link", "missing-intake", "secret", "symlink", "hardlink"):
             with self.subTest(scenario=scenario):
                 source = self.root / ("skill-" + scenario)
                 shutil.copytree(SOURCE, source)
@@ -150,6 +151,8 @@ class PackageV2Tests(unittest.TestCase):
                 if scenario == "broken-link":
                     entry = source / "SKILL.md"
                     entry.write_text(entry.read_text() + "\n[Missing reference](references/missing.md)\n")
+                elif scenario == "missing-intake":
+                    (source / "scripts/fetch_library.py").unlink()
                 elif scenario == "secret":
                     (source / ".env").write_text("SYNTHETIC_PLACEHOLDER=fixture\n")
                 else:

@@ -14,7 +14,7 @@ The root coordinator owns progress and evidence. Independent approval requires a
 
 For new Critical work, use the [four-round Critical workflow](references/critical-four-rounds.md). It is shared with the installed Astra/Sol skill. The Direct and Standard v8 package retains its staged status. Existing runs use their recorded profiles. See [adoption](references/adoption.md).
 
-For every new delivery, Sol reads the shared catalog from `main` during intake. At successful handoff the coordinator publishes new public-safe properties and misses to their category branches and merges them to `main`. Follow the [shared library procedure](references/critical-four-rounds.md#shared-library-at-intake-and-handoff) for the commands, evidence and no-change path.
+First, run the [library fetch](scripts/fetch_library.py) before project inspection, planning, dispatch or edits on every new or resumed invocation. Continue only after the latest properties and rules from `main` validate. Record the fetched revision and selected IDs. At successful handoff, reflect on verified findings and publish any new public-safe properties or rules. An empty or duplicate reflection creates no commit. Follow the [intake and handoff procedure](references/critical-four-rounds.md#shared-library-at-intake-and-handoff).
 
 ## Select the lane
 

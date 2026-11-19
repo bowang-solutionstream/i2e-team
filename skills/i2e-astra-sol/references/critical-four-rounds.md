@@ -9,7 +9,7 @@ Use this workflow for a new High or Critical technical risk or significant archi
 | 3 | Sol 6.2 Max · Fast | Implement the accepted local issues in dependency order. Record focused regression evidence, material failures and the integrated candidate. Sol owns repairs at every severity. |
 | 4 | Fresh Sol 6.2 Max · Fast | Independently run the full project lint and E2E commands on the integrated candidate. Check every accepted criterion and record its observed outcome. |
 
-Astra's Critical assignment ends at the planning handoff. Configure round 2 with network access disabled for commands, no publishing connectors and write access limited to its private planning workspace and run receipts. Read the target via the read-only probe or a read-only checkout. Keep specifications, task IDs and status changes local for the entire run. No GitHub account, remote, issue number or credential is needed. Publishing the reusable skill is a separate maintainer action.
+Astra's Critical assignment ends at the planning handoff. Configure round 2 with network access disabled for commands, no publishing connectors and write access limited to its private planning workspace and run receipts. Read the target via the read-only probe or a read-only checkout. Keep specifications, task IDs and status changes local for the entire run. Astra plans from local snapshots in its network-disabled workspace. Publishing the reusable skill is a separate maintainer action.
 
 ## Prepare the session
 
@@ -19,12 +19,15 @@ Use Python 3.11 or later and an existing Git checkout. Set `repo` to its root an
 mkdir -p "$private_root"
 run=$(mktemp -d "$private_root/critical.XXXXXXXX")
 state="$run/run.json"
+intake=$(python3 -B "$(dirname "$i2e")/fetch_library.py" "$run") || exit 1
+library="$intake/library"
+cat "$intake/catalog.json"
 python3 -B "$i2e" critical routing
 python3 -B "$i2e" critical --state "$state" init --repo "$repo"
 python3 -B "$i2e" setup-speckit --workspace "$run/planning" > "$run/setup.json"
 ```
 
-Prepare Spec Kit before dispatch. The bootstrap uses a matching installed `specify` CLI, or `uv` to install the pinned upstream version. It initializes the three planning skills from bundled assets with events disabled. On a new offline machine, install the pinned CLI first. Each run uses its own planning workspace. See the [Spec Kit Codex integration](https://github.github.io/spec-kit/integrations/codex.html).
+Prepare Spec Kit before dispatch. The bootstrap uses a matching installed `specify` CLI, or `uv` to install the pinned upstream version. It initializes the three planning skills from bundled assets with events disabled. Prepare the pinned CLI while online if the planner will run offline. Each run uses its own planning workspace. See the [Spec Kit Codex integration](https://github.github.io/spec-kit/integrations/codex.html).
 
 Use real, persisted Codex rollouts. Launch each actor at its assigned model and effort. Fast uses `service_tier="priority"`. Standard uses `service_tier="default"`. If native children inherit the coordinator's speed, launch Astra as a separate Standard root. Launch the verifier as a new standalone Sol session **after** the implementation handoff. Give it the frozen candidate, accepted specification, known regressions and verification commands. Let it form its own assessment. Give actors access to write their private receipts. Give only the implementer authority to edit product source.
 
@@ -71,12 +74,17 @@ Failed checks or acceptance return the same design to Sol for repair. A new inde
 
 ## Shared library at intake and handoff
 
-For each new run, Sol reads `main` from the public I2E Team repository in a fresh private checkout outside the product. Do this in round 1, before the offline Spec Kit assignment. Record the catalog revision and applicable entry IDs in the probe. Give Astra the selected statements and triggers locally. Use scoped adopted properties as verification oracles and adopted rules as review prompts. Mark candidates as suggestions and skip retired entries. Resume with the pinned revision. If intake is offline, report the cached revision as stale or record `UNAVAILABLE`.
+Before every new I2E run and whenever a later session resumes one, the coordinator fetches the latest merged properties and rules from `main`. Do this before project inspection, planning, dispatch or edits, including read-only runs. Set `run` to the private run directory outside the product, and `skill` to the directory of the active skill containing `scripts/fetch_library.py`.
 
 ```sh
-git clone --quiet --single-branch --branch main https://github.com/bowang-solutionstream/i2e-team.git "$run/library"
-python3 -B "$run/library/tools/library.py" catalog
+intake=$(python3 -B "$skill/scripts/fetch_library.py" "$run") || exit 1
+library="$intake/library"
+cat "$intake/catalog.json"
 ```
+
+The installed parser validates records directly from the fetched Git objects. Continue only when the command succeeds. Record the returned snapshot path, the `revision` in `catalog.json` and the relevant record IDs. Read the matching Markdown in `library/properties/` and `library/rules/`. A failed fetch or invalid catalog blocks the run. Report the failure and retry the fetch before continuing. Earlier receipts remain evidence of earlier work. Keep the same snapshot across rounds of this invocation. On resumption, retain the previous receipt and reconcile newly applicable checks with the plan before continuing.
+
+The Critical preparation commands above already fetch once. Sol supplies the selected properties and triggers to Astra locally. Astra's Spec Kit planning stays offline. Adopted properties provide scoped oracles and adopted rules supply diff checks. Treat candidates as suggestions and skip retired records.
 
 At successful handoff, the coordinator inspects verified outcomes for newly demonstrated properties and misses. Run reflection only after the requested delivery succeeds. For Critical work this includes fresh Sol's passing lint, E2E, accepted criteria, `phase=complete` and `acceptance_current=true` on the final candidate. This handoff uses the existing coordinator and adds no agent round. Failed, partial, stale and read-only runs retain observations privately.
 
@@ -84,7 +92,7 @@ Create an empty private drafts directory. For each new public-safe finding copy 
 
 ```sh
 mkdir -p "$run/drafts/properties" "$run/drafts/rules"
-python3 -B "$run/library/tools/library.py" reflect --workflow i2e-astra-sol \
+python3 -B "$library/tools/library.py" reflect --workflow i2e-astra-sol \
   --entries "$run/drafts" --i2e "$i2e" --state "$state"
 ```
 

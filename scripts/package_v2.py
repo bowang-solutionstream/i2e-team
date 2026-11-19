@@ -30,7 +30,8 @@ DEPENDENCIES = {"canonical_case_helper": {
 DIRECTORIES = {
     "agents": {"openai.yaml", "i2e_team_sol.toml", "i2e_team_astra.toml"},
     "scripts": {"i2e.py", "v2_contract.py", "v2_runtime.py", "worker_adapter.py", "github_adapter.py",
-                "verify_labels.py", "critical_flow.py", "critical_issues.py", "critical_routing.py", "critical_speckit.py"},
+                "verify_labels.py", "critical_flow.py", "critical_issues.py", "critical_routing.py", "critical_speckit.py",
+                "fetch_library.py", "records.py"},
     "references": {
         "runtime.md", "runtime-v1.md", "settings.md", "teaching.md", "records-v2.md",
         "policy.md", "execution.md", "verification.md", "delivery.md", "adoption.md", "label-verification.json",
@@ -40,7 +41,9 @@ DIRECTORIES = {
 }
 FILES = {"SKILL.md"} | {f"{directory}/{name}" for directory, names in DIRECTORIES.items() for name in names}
 PRESET_FILES = {"agents/i2e_team_sol.toml", "agents/i2e_team_astra.toml"}
-PREVIOUS_FILES = FILES - {"scripts/critical_flow.py", "scripts/critical_issues.py", "scripts/critical_routing.py",
+INTAKE_SCRIPTS = {"fetch_library.py", "records.py"}
+PRE_INTAKE_FILES = FILES - {f"scripts/{name}" for name in INTAKE_SCRIPTS}
+PREVIOUS_FILES = PRE_INTAKE_FILES - {"scripts/critical_flow.py", "scripts/critical_issues.py", "scripts/critical_routing.py",
                           "scripts/critical_speckit.py", "references/critical-four-rounds.md"}
 MAX_PAYLOAD = 16 * 1024 * 1024
 MAX_ARCHIVE = MAX_PAYLOAD + 1024 * 1024
@@ -225,7 +228,7 @@ def read_manifest(body):
     if json.dumps(manifest["external_dependencies"], sort_keys=True) != json.dumps(DEPENDENCIES, sort_keys=True):
         raise ValueError("Invalid external canonical-case-helper dependency")
     files = manifest["files"]
-    if not isinstance(files, dict) or files.keys() not in (FILES, PREVIOUS_FILES, PREVIOUS_FILES - PRESET_FILES):
+    if not isinstance(files, dict) or files.keys() not in (FILES, PRE_INTAKE_FILES, PREVIOUS_FILES, PREVIOUS_FILES - PRESET_FILES):
         raise ValueError("Invalid package manifest inventory")
     for row in files.values():
         check_fingerprint(row, MAX_PAYLOAD, {"size", "sha256"})
@@ -280,7 +283,11 @@ def require_separate(source, destination):
 def stage(source, destination):
     require_separate(source, destination)
     with open_directory(source) as directory:
-        payload = read_skill(directory)
+        directories = DIRECTORIES
+        with child_directory(directory, "scripts") as scripts:
+            if INTAKE_SCRIPTS.isdisjoint(os.listdir(scripts)):
+                directories = {**DIRECTORIES, "scripts": DIRECTORIES["scripts"] - INTAKE_SCRIPTS}
+        payload = read_skill(directory, directories)
     check_local_links(payload)
     # A pinned checkout can still stage its original, pre-rename skill.
     frontmatter = payload["SKILL.md"].decode("utf-8").splitlines()

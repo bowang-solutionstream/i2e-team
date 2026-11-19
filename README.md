@@ -23,4 +23,4 @@ Keep the planning workspace and issue board in a private directory outside the c
 
 The skill, role presets, examples and tests on this branch come from the [verified source revision](https://github.com/bowang-solutionstream/utlyze-agent-memory/commit/f602be2c51785e1c7bb52ecc54973cedf189267b).
 
-All three model workflows read the [merged property and rule library](https://github.com/bowang-solutionstream/i2e-team/tree/main). After successful delivery, the coordinator publishes new public-safe findings to their category branches and merges them into the catalog for the next run.
+Before starting or resuming work, all three workflows fetch and validate the [merged property and rule library](https://github.com/bowang-solutionstream/i2e-team/tree/main). After successful delivery, the coordinator publishes new public-safe findings to their category branches and merges them into the catalog for the next run.
