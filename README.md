@@ -20,7 +20,7 @@ the Astra and Sol workflow for Codex.
 Before any doubt review, the session tells you which decision it would check, why a
 review is needed, and what the reviewer would examine; only the reviews you approve
 run. At the end, the session reports what was proven, adds what it learned to the
-shared library as candidates, and pushes nothing without your approval.
+shared library as candidates, and merges public-safe findings into the shared catalog at successful handoff.
 
 The workflow is built on engineering practices from
 [Addy Osmani's agent-skills](https://github.com/addyosmani/agent-skills). Credit to
@@ -48,24 +48,7 @@ Claude Code session afterwards to load the skill and agents.
 
 ## The shared property and rule library
 
-The `i2e-fable-opus` and `i2e-opus-sonnet` workflows read and add to one local
-library: a Git repository at `$I2E_LIBRARY` when that is set, otherwise at
-`$XDG_DATA_HOME/i2e/library`, or `~/.local/share/i2e/library` by default. Properties
-are statements that should hold for every input; rules are checks that past misses
-justify. Runs add what they learn as candidates, and a reflection step adopts what
-has earned it.
-
-```sh
-python3 scripts/library.py init
-python3 scripts/library.py check
-```
-
-`init` creates the layout and runs `git init` without committing. To curate the
-library, ask the skill to reflect on it, for example "/i2e-fable-opus reflect on the
-library". The skill commits library changes locally and pushes only when you
-approve; keep the library's remote private unless every entry is safe to publish.
-The [library guide](skills/i2e-fable-opus/references/library.md) describes the
-format.
+All three I2E workflows fetch the latest merged catalog from [main](https://github.com/bowang-solutionstream/i2e-team/tree/main) at intake. After successful delivery, the coordinator publishes public-safe properties and lessons from observed misses to their category branches and merges them into the catalog. A run with no new findings creates no commit. The [library guide](skills/i2e-fable-opus/references/library.md) covers the commands, evidence and retry behavior.
 
 ## Update
 
