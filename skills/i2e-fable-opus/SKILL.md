@@ -5,6 +5,8 @@ description: Run an Issue-to-Edit workstream in which Fable 5.2 Max plans and gi
 
 # I2E Fable Opus
 
+First, run the [library fetch](scripts/fetch_library.py) before project inspection, planning, dispatch or edits on every new or resumed invocation. Continue only after the latest properties and rules from `main` validate. Record the fetched revision and selected IDs. At successful handoff, reflect on verified findings and publish any new public-safe properties or rules. An empty or duplicate reflection creates no commit. Follow the [intake and handoff procedure](references/library.md).
+
 Deliver the requested outcome with one continuing Issue-to-Edit contract. This
 package contains the workflow, routing, failure-case, verification, library, and
 handoff guidance, five pinned subagents, and 25 lifecycle guides; no other workflow
@@ -74,7 +76,7 @@ outside the owned source scope, and reuse it across agents.
    mapped to required checks. It records the repository's verification assets, such
    as a `verify` skill, a feature map, or `REVIEW.md`
    ([verification loops](references/verification-loops.md)), and looks up the
-   matching properties and rules on library `main`, recording its commit and applicable IDs under the [library guide](references/library.md).
+   matching properties and rules in the snapshot fetched at intake, recording its commit and applicable IDs under the [library guide](references/library.md).
 2. It consults the known [failure cases](references/failure-cases.md).
 3. A fresh Fable planner writes the substantive plan and test strategy from the
    real contract, evidence, and library matches: the end-to-end flows, the
