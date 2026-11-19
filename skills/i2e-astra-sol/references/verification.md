@@ -9,7 +9,7 @@ Evidence and independent assurance for the staged v8 profile. The [runtime guide
 At planning, identify the user-visible entry point for each E2E acceptance and the language of the code with a property to check. Prefer the project's existing verified harness when it covers that claim. For the staged defaults, run the selector from the pinned skill. Supply only the dimensions that apply.
 
 ```sh
-python3 -B skills/i2e-team/scripts/i2e.py select-tools --surface web --language typescript --feature labels.normalize
+python3 -B skills/i2e-astra-sol/scripts/i2e.py select-tools --surface web --language typescript --feature labels.normalize
 ```
 
 A web journey selects Chrome DevTools MCP. API and CLI journeys use the public API or executable. Mobile and desktop journeys need a compatible simulator, emulator or computer-use driver. The property defaults are fast-check for JS/TS, Hypothesis for Python and proptest for Rust. Use another project-supported tool when the surface or language requires it and record the choice in the plan. Include a feature only when its contract applies.
@@ -37,7 +37,7 @@ When passing checks miss an observed defect, retain the raw case in the private 
 Select feature `labels.normalize` for a task whose public `reader.read(list[str])` operation normalizes whitespace while preserving label text, order, duplicates and the input. Acceptance A1 uses the [checked-in property and rule catalog](label-verification.json) and the [local verifier](../scripts/verify_labels.py). Run it against the selected disposable repository using the checkout's Python 3.
 
 ```sh
-python3 -IB skills/i2e-team/scripts/verify_labels.py --repo /path/to/label-fixture --feature labels.normalize
+python3 -IB skills/i2e-astra-sol/scripts/verify_labels.py --repo /path/to/label-fixture --feature labels.normalize
 ```
 
 The command drives the public API in a fresh local process. Review the actual selected IDs, sample counts, first counterexample, source identity and exit. The staged pilot binds a copy of this trusted verifier and catalog as read-only harness inputs before TEST_ONLY. Its named A1 unittest executes the pack at RED, GREEN and verifier rerun. The repo's `scripts/pilot_labels_v8.py --help` describes the full disposable controller run and its host dependencies.

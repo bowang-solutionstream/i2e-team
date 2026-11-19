@@ -18,10 +18,11 @@ from urllib.parse import unquote, urlsplit
 import zlib
 
 
-SKILL = "i2e-team"
+SKILL = "i2e-astra-sol"
+PREVIOUS_SKILL = "i2e-team"
 SCHEMA = "i2e-team-package-v2"
 STATUS = "STAGED_NOT_INSTALLED"
-ARCHIVE = "i2e-team.tar.gz"
+ARCHIVE_SKILLS = {f"{name}.tar.gz": name for name in (SKILL, PREVIOUS_SKILL)}
 MANIFEST = "manifest.json"
 DEPENDENCIES = {"canonical_case_helper": {
     "entrypoint": "shared_cases.py", "required": True, "bundled": False,
@@ -41,7 +42,6 @@ FILES = {"SKILL.md"} | {f"{directory}/{name}" for directory, names in DIRECTORIE
 PRESET_FILES = {"agents/i2e_team_sol.toml", "agents/i2e_team_astra.toml"}
 PREVIOUS_FILES = FILES - {"scripts/critical_flow.py", "scripts/critical_issues.py", "scripts/critical_routing.py",
                           "scripts/critical_speckit.py", "references/critical-four-rounds.md"}
-TAR_DIRS = {SKILL} | {f"{SKILL}/{directory}" for directory in DIRECTORIES}
 MAX_PAYLOAD = 16 * 1024 * 1024
 MAX_ARCHIVE = MAX_PAYLOAD + 1024 * 1024
 MAX_MANIFEST = 64 * 1024
@@ -168,16 +168,20 @@ def check_local_links(payload):
                     raise ValueError(f"Broken or out-of-package local link in {name}: {target}")
 
 
-def tar_bytes(payload):
+def tar_dirs(skill):
+    return {skill} | {f"{skill}/{directory}" for directory in DIRECTORIES}
+
+
+def tar_bytes(payload, skill=SKILL):
     stream = io.BytesIO()
     with tarfile.open(fileobj=stream, mode="w:", format=tarfile.USTAR_FORMAT) as archive:
-        for name in sorted(TAR_DIRS):
+        for name in sorted(tar_dirs(skill)):
             member = tarfile.TarInfo(name)
             member.type = tarfile.DIRTYPE
             member.mode = 0o755
             archive.addfile(member)
         for name, body in sorted(payload.items()):
-            member = tarfile.TarInfo(f"{SKILL}/{name}")
+            member = tarfile.TarInfo(f"{skill}/{name}")
             member.mode = 0o644
             member.size = len(body)
             archive.addfile(member, io.BytesIO(body))
@@ -188,9 +192,9 @@ def fingerprint(body):
     return {"sha256": sha256(body), "size": len(body)}
 
 
-def manifest_for(payload, archive):
+def manifest_for(payload, archive, skill=SKILL):
     return {"schema": SCHEMA, "status": STATUS, "files": {name: fingerprint(body) for name, body in payload.items()},
-            "archive": {"path": ARCHIVE, **fingerprint(archive)}, "external_dependencies": DEPENDENCIES}
+            "archive": {"path": f"{skill}.tar.gz", **fingerprint(archive)}, "external_dependencies": DEPENDENCIES}
 
 
 def unique_fields(pairs):
@@ -228,23 +232,27 @@ def read_manifest(body):
     if sum(row["size"] for row in files.values()) > MAX_PAYLOAD:
         raise ValueError("Manifest payload exceeds the package limit")
     check_fingerprint(manifest["archive"], MAX_ARCHIVE, {"path", "size", "sha256"})
-    if manifest["archive"]["path"] != ARCHIVE:
+    archive_name = manifest["archive"]["path"]
+    if not isinstance(archive_name, str) or archive_name not in ARCHIVE_SKILLS:
         raise ValueError("Invalid archive path")
     return manifest
 
 
 def read_archive(compressed, manifest):
-    if {"path": ARCHIVE, **fingerprint(compressed)} != manifest["archive"]:
+    archive_name = manifest["archive"]["path"]
+    skill = ARCHIVE_SKILLS[archive_name]
+    if {"path": archive_name, **fingerprint(compressed)} != manifest["archive"]:
         raise ValueError("Archive size or SHA-256 differs from the manifest")
     decompressor = zlib.decompressobj(16 + zlib.MAX_WBITS)
     raw = decompressor.decompress(compressed, MAX_ARCHIVE + 1)
     if len(raw) > MAX_ARCHIVE or not decompressor.eof or decompressor.unconsumed_tail or decompressor.unused_data:
         raise ValueError("Archive must be one bounded, complete gzip member")
     payload, directories = {}, set()
-    prefix = f"{SKILL}/"
+    prefix = f"{skill}/"
+    allowed_dirs = tar_dirs(skill)
     with tarfile.open(fileobj=io.BytesIO(raw), mode="r:") as archive:
         for member in archive:
-            if member.type == tarfile.DIRTYPE and member.name in TAR_DIRS and member.name not in directories:
+            if member.type == tarfile.DIRTYPE and member.name in allowed_dirs and member.name not in directories:
                 directories.add(member.name)
                 continue
             name = member.name.removeprefix(prefix)
@@ -258,7 +266,7 @@ def read_archive(compressed, manifest):
             if fingerprint(body) != expected:
                 raise ValueError(f"Unexpected archive member bytes: {name}")
             payload[name] = body
-    if payload.keys() != manifest["files"].keys() or directories != TAR_DIRS or tar_bytes(payload) != raw:
+    if payload.keys() != manifest["files"].keys() or directories != allowed_dirs or tar_bytes(payload, skill) != raw:
         raise ValueError("Archive member inventory or USTAR encoding is invalid")
     check_local_links(payload)
     return payload
@@ -274,13 +282,21 @@ def stage(source, destination):
     with open_directory(source) as directory:
         payload = read_skill(directory)
     check_local_links(payload)
-    archive = gzip.compress(tar_bytes(payload), compresslevel=9, mtime=0)
-    manifest = (json.dumps(manifest_for(payload, archive), indent=2, sort_keys=True) + "\n").encode("utf-8")
+    # A pinned checkout can still stage its original, pre-rename skill.
+    frontmatter = payload["SKILL.md"].decode("utf-8").splitlines()
+    skill = SKILL
+    if frontmatter[:1] == ["---"] and "---" in frontmatter[1:]:
+        header = frontmatter[1:frontmatter.index("---", 1)]
+        if f"name: {PREVIOUS_SKILL}" in header:
+            skill = PREVIOUS_SKILL
+    archive_name = f"{skill}.tar.gz"
+    archive = gzip.compress(tar_bytes(payload, skill), compresslevel=9, mtime=0)
+    manifest = (json.dumps(manifest_for(payload, archive, skill), indent=2, sort_keys=True) + "\n").encode("utf-8")
     with open_directory(destination.parent) as parent, child_directory(parent, destination.name, create=True) as output:
         write_file(output, MANIFEST, manifest)
-        write_file(output, ARCHIVE, archive)
-        exact_entries(output, {MANIFEST, ARCHIVE})
-        if read_file(output, MANIFEST, MAX_MANIFEST) != manifest or read_file(output, ARCHIVE, MAX_ARCHIVE) != archive:
+        write_file(output, archive_name, archive)
+        exact_entries(output, {MANIFEST, archive_name})
+        if read_file(output, MANIFEST, MAX_MANIFEST) != manifest or read_file(output, archive_name, MAX_ARCHIVE) != archive:
             raise ValueError("Staged bytes changed during readback")
     return {"package": str(destination), "manifest": str(destination / MANIFEST), "files": len(payload)}
 
@@ -288,16 +304,18 @@ def stage(source, destination):
 def verify(package, extraction):
     require_separate(package, extraction)
     with open_directory(package) as directory:
-        exact_entries(directory, {MANIFEST, ARCHIVE})
         manifest = read_manifest(read_file(directory, MANIFEST, MAX_MANIFEST))
-        compressed = read_file(directory, ARCHIVE, MAX_ARCHIVE)
+        archive_name = manifest["archive"]["path"]
+        exact_entries(directory, {MANIFEST, archive_name})
+        compressed = read_file(directory, archive_name, MAX_ARCHIVE)
     payload = read_archive(compressed, manifest)
+    skill_name = ARCHIVE_SKILLS[archive_name]
     directories = {
         folder: {name for name in names if f"{folder}/{name}" in payload}
         for folder, names in DIRECTORIES.items()
     }
     with open_directory(extraction.parent) as parent, child_directory(parent, extraction.name, create=True) as output:
-        with child_directory(output, SKILL, create=True) as skill:
+        with child_directory(output, skill_name, create=True) as skill:
             write_file(skill, "SKILL.md", payload["SKILL.md"])
             for folder, names in sorted(directories.items()):
                 with child_directory(skill, folder, create=True) as child:
@@ -305,7 +323,7 @@ def verify(package, extraction):
                         write_file(child, name, payload[f"{folder}/{name}"])
             if read_skill(skill, directories) != payload:
                 raise ValueError("Extracted bytes changed during readback")
-        exact_entries(output, {SKILL})
+        exact_entries(output, {skill_name})
     return {"package": str(package), "extraction": str(extraction), "files": len(payload)}
 
 

@@ -7,7 +7,7 @@ import sys
 import tempfile
 import unittest
 
-CLI = Path(__file__).resolve().parents[1] / "skills/i2e-team/scripts/i2e.py"
+CLI = Path(__file__).resolve().parents[1] / "skills/i2e-astra-sol/scripts/i2e.py"
 
 
 class CatalogSelectionTests(unittest.TestCase):

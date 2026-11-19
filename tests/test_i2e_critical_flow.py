@@ -13,7 +13,7 @@ import unittest
 import uuid
 
 
-SCRIPTS = Path(__file__).resolve().parents[1] / "skills/i2e-team/scripts"
+SCRIPTS = Path(__file__).resolve().parents[1] / "skills/i2e-astra-sol/scripts"
 PLANNER_ARGV = runpy.run_path(str(SCRIPTS / "critical_speckit.py"))["planner_argv"]
 SOL = "gpt-6.2-sol"
 ASTRA = "gpt-6.2-astra"

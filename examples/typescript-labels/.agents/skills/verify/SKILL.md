@@ -5,7 +5,7 @@ description: Verify the disposable TypeScript label form, its normalizeLabels fu
 
 Run from the fixture's package root with Python 3.11+, Node 22.12+, npm and a local Chrome installation. Set `CHROME_EXECUTABLE` when the driver needs the path to Chrome. In a fresh clone of the staged repo the fixture is under `examples/typescript-labels`. The project skill, source, test commands and dependency lock travel together.
 
-Set `i2e_skill` to the pinned staged skill directory. From the example's original location, use `i2e_skill=../../skills/i2e-team`. In a disposable copy, point it to that checkout or its verified package readback. At planning, create the tool selection once and bind it, this harness, the dependency lock and the selected catalog to the candidate's verification plan.
+Set `i2e_skill` to the pinned staged skill directory. From the example's original location, use `i2e_skill=../../skills/i2e-astra-sol`. In a disposable copy, point it to that checkout or its verified package readback. At planning, create the tool selection once and bind it, this harness, the dependency lock and the selected catalog to the candidate's verification plan.
 
 ```sh
 python3 -B "$i2e_skill/scripts/i2e.py" select-tools --surface web --language typescript --feature labels.normalize > tool-plan.json

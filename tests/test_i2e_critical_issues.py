@@ -6,7 +6,7 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
-SCRIPTS = Path(__file__).resolve().parents[1] / "skills/i2e-team/scripts"
+SCRIPTS = Path(__file__).resolve().parents[1] / "skills/i2e-astra-sol/scripts"
 
 
 def module(name):

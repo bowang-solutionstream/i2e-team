@@ -45,7 +45,7 @@ def policy_request(lane="Standard", *, risk="Medium", priority="normal", **overr
 
 class PolicyV2Tests(unittest.TestCase):
     def test_separate_root_commands_pin_both_roles(self):
-        guide = Path(__file__).resolve().parents[1] / "skills/i2e-team/references/policy.md"
+        guide = Path(__file__).resolve().parents[1] / "skills/i2e-astra-sol/references/policy.md"
         commands = [shlex.split(line) for line in guide.read_text().splitlines() if line.startswith("codex exec ")]
         seen = {}
         for command in commands:
@@ -65,7 +65,7 @@ class PolicyV2Tests(unittest.TestCase):
             name = "i2e_team_" + role
             with self.subTest(role=role):
                 path = (config.parent / roles[name]["config_file"]).resolve(strict=True)
-                self.assertEqual(repo / "skills/i2e-team/agents" / (name + ".toml"), path)
+                self.assertEqual(repo / "skills/i2e-astra-sol/agents" / (name + ".toml"), path)
                 preset = tomllib.loads(path.read_text())
                 self.assertEqual((name, settings["model"], settings["effort"],
                                   {"Fast": "priority", "Standard": "default"}[settings["tier"]]),

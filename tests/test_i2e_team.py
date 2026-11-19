@@ -16,7 +16,7 @@ from unittest import mock
 from pathlib import Path
 
 
-SCRIPT = Path(__file__).resolve().parents[1] / "skills/i2e-team/scripts/i2e.py"
+SCRIPT = Path(__file__).resolve().parents[1] / "skills/i2e-astra-sol/scripts/i2e.py"
 SPEC = importlib.util.spec_from_file_location("i2e_team_runtime", SCRIPT)
 assert SPEC is not None and SPEC.loader is not None
 RUNTIME = importlib.util.module_from_spec(SPEC)

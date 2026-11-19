@@ -212,8 +212,8 @@ def run(args, output):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output", required=True, type=Path, help="a new private evidence directory")
-    parser.add_argument("--skill", type=Path, default=ROOT / "skills/i2e-team",
-                        help="staged skill checkout or extracted i2e-team directory")
+    parser.add_argument("--skill", type=Path, default=ROOT / "skills/i2e-astra-sol",
+                        help="staged skill checkout or extracted i2e-astra-sol directory")
     parser.add_argument("--seeded-composition", action="store_true",
                         help="check that v8 refuses a deliberate Unicode composition fault; a miss exits 1")
     parser.add_argument("--case-helper", type=Path, default=Path("~/.codex/skills/i2e-failure-cases/scripts/shared_cases.py"),

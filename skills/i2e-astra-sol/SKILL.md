@@ -1,6 +1,6 @@
 ---
-name: i2e-team
-description: Run the four-round Critical I2E workflow with Sol probing, Astra Spec Kit planning and local issues, Sol implementation and fresh Sol verification. Use the staged v8 controller for Direct and Standard evaluation.
+name: i2e-astra-sol
+description: Run the four-round Critical Astra/Sol I2E workflow with Sol probing, Astra Spec Kit planning and local issues, Sol implementation and fresh Sol verification. Use the staged v8 controller for Direct and Standard evaluation.
 metadata:
   profile: i2e-team/v2
   revision: v8
@@ -8,11 +8,11 @@ metadata:
   critical_workflow: critical-four-v1
 ---
 
-# I2E coordinator entrypoint
+# I2E Astra/Sol coordinator
 
 The root coordinator owns progress and evidence. Independent approval requires an eligible separate session.
 
-For new Critical work, use the [four-round Critical workflow](references/critical-four-rounds.md). It is shared with the installed I2E Team skill. The Direct and Standard v8 package retains its staged status. Existing runs use their recorded profiles. See [adoption](references/adoption.md).
+For new Critical work, use the [four-round Critical workflow](references/critical-four-rounds.md). It is shared with the installed Astra/Sol skill. The Direct and Standard v8 package retains its staged status. Existing runs use their recorded profiles. See [adoption](references/adoption.md).
 
 For every new delivery, Sol reads the shared catalog from `main` during intake. At successful handoff the coordinator publishes new public-safe properties and misses to their category branches and merges them to `main`. Follow the [shared library procedure](references/critical-four-rounds.md#shared-library-at-intake-and-handoff) for the commands, evidence and no-change path.
 

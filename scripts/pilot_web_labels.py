@@ -141,7 +141,7 @@ def pilot(skill, output):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output", required=True, type=Path, help="a new directory for fixtures and receipts")
-    parser.add_argument("--skill", type=Path, default=ROOT / "skills/i2e-team", help="pinned staged skill or package readback")
+    parser.add_argument("--skill", type=Path, default=ROOT / "skills/i2e-astra-sol", help="pinned staged skill or package readback")
     args = parser.parse_args()
     output = args.output.resolve()
     if output.is_relative_to(EXAMPLE.resolve()):

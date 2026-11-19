@@ -7,7 +7,7 @@ import tempfile
 import unittest
 
 
-SKILL = Path(__file__).resolve().parents[1] / "skills/i2e-team"
+SKILL = Path(__file__).resolve().parents[1] / "skills/i2e-astra-sol"
 VERIFIER = SKILL / "scripts/verify_labels.py"
 CATALOG = SKILL / "references/label-verification.json"
 CORRECT = "def read(values):\n    return [' '.join(s.split()) for s in values]\n"

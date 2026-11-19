@@ -1,0 +1,4 @@
+interface:
+  display_name: "I2E Astra/Sol"
+  short_description: "Four-round Critical I2E with local issues and fresh verification"
+  default_prompt: "Use $i2e-astra-sol to assess this task, preserve its authority boundaries, and identify the next supported action."

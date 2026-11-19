@@ -20,7 +20,7 @@ import test_i2e_team as legacy
 
 ROOT = Path(__file__).resolve().parents[1]
 PACKAGER = ROOT / "scripts" / "package_v2.py"
-SOURCE = ROOT / "skills" / "i2e-team"
+SOURCE = ROOT / "skills" / "i2e-astra-sol"
 INVENTORY = {
     "SKILL.md", "agents/openai.yaml", "agents/i2e_team_sol.toml", "agents/i2e_team_astra.toml",
     "scripts/i2e.py", "scripts/v2_contract.py", "scripts/v2_runtime.py",
@@ -68,10 +68,11 @@ class PackageV2Tests(unittest.TestCase):
         self.assertEqual(("shared_cases.py", True, False),
                          (dependency["entrypoint"], dependency["required"], dependency["bundled"]))
         archive = dest / manifest["archive"]["path"]
+        self.assertEqual("i2e-astra-sol.tar.gz", archive.name)
         self.assertEqual(manifest["archive"]["sha256"], digest(archive.read_bytes()))
         with tarfile.open(archive, "r:gz") as tar:
             self.assertTrue(all(member.isfile() or member.isdir() for member in tar.getmembers()))
-            contents = {member.name.removeprefix("i2e-team/"): tar.extractfile(member).read()
+            contents = {member.name.removeprefix("i2e-astra-sol/"): tar.extractfile(member).read()
                         for member in tar.getmembers() if member.isfile()}
         self.assertEqual(INVENTORY, set(contents))
         for name, body in contents.items():
@@ -80,21 +81,21 @@ class PackageV2Tests(unittest.TestCase):
         checked = self.invoke("verify", "--package", dest, "--extract", extraction)
         self.assertEqual("STAGED_NOT_INSTALLED", checked["status"])
         for name, body in contents.items():
-            self.assertEqual(body, (extraction / "i2e-team" / name).read_bytes(), name)
+            self.assertEqual(body, (extraction / "i2e-astra-sol" / name).read_bytes(), name)
 
     def test_older_complete_package_verifies_but_partial_role_pair_is_rejected(self):
         packager = runpy.run_path(str(PACKAGER))
         previous = {p for p in INVENTORY if not p.startswith(("scripts/critical_", "references/critical-"))}
         legacy_names = previous - {"agents/i2e_team_sol.toml", "agents/i2e_team_astra.toml"}
-        for label, names, valid in (("previous", previous, True), ("original", legacy_names, True),
+        for label, names, valid in (("pre-rename", INVENTORY, True), ("previous", previous, True), ("original", legacy_names, True),
                                     ("partial", legacy_names | {"agents/i2e_team_sol.toml"}, False)):
             with self.subTest(label=label):
                 dest, extraction = self.root / label, self.root / (label + "-readback")
                 dest.mkdir()
                 payload = {name: b"fixture\n" for name in names}
-                archive = gzip.compress(packager["tar_bytes"](payload), mtime=0)
+                archive = gzip.compress(packager["tar_bytes"](payload, "i2e-team"), mtime=0)
                 (dest / "i2e-team.tar.gz").write_bytes(archive)
-                (dest / "manifest.json").write_text(json.dumps(packager["manifest_for"](payload, archive)))
+                (dest / "manifest.json").write_text(json.dumps(packager["manifest_for"](payload, archive, "i2e-team")))
                 self.invoke("verify", "--package", dest, "--extract", extraction, passing=valid)
                 if valid:
                     self.assertEqual({Path(n).name for n in names if n.startswith("agents/")},
@@ -106,7 +107,7 @@ class PackageV2Tests(unittest.TestCase):
         dest, extracted = self.root / "package", self.root / "readback"
         self.stage(dest)
         self.invoke("verify", "--package", dest, "--extract", extracted)
-        skill = extracted / "i2e-team"
+        skill = extracted / "i2e-astra-sol"
         command = [a1.PYTHON, "-B", str(skill / "scripts/i2e.py"), "select-tools"]
 
         def select(*args, expected=0):
@@ -206,7 +207,7 @@ class PackageV2Tests(unittest.TestCase):
         replacement = self.root / "replacement.tar.gz"
         with tarfile.open(archive, "r:gz") as original, tarfile.open(replacement, "w:gz") as changed:
             for member in original.getmembers():
-                if member.name == "i2e-team/references/settings.md":
+                if member.name == "i2e-astra-sol/references/settings.md":
                     link = tarfile.TarInfo(member.name)
                     link.type = tarfile.SYMTYPE
                     link.linkname = "runtime.md"
