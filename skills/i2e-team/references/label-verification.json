@@ -1,0 +1,75 @@
+{
+  "schema": "i2e-label-catalog/v1",
+  "features": {
+    "labels.normalize": {
+      "acceptance": ["A1"],
+      "entrypoint": "reader.read",
+      "checks": [
+        {
+          "id": "labels.normalize.public_api_e2e.v1",
+          "kind": "public_api_e2e",
+          "claim": "A mixed user list is normalized through the public reader.read API.",
+          "trigger": "Changes to reader.read or its label-normalization dependencies.",
+          "input_domain": "A list of strings, including empty, repeated and multilingual labels.",
+          "oracle": "A fixed scenario with independently stated expected values.",
+          "owner": "Disposable label pilot"
+        },
+        {
+          "id": "labels.normalize.whitespace_content.v1",
+          "kind": "whitespace_content",
+          "claim": "Leading and trailing whitespace is removed and every internal run becomes one ASCII space.",
+          "trigger": "Changes to whitespace recognition, trimming, splitting or joining.",
+          "input_domain": "287 distinct lists built from a, B, cat ideograph, space, tab, NBSP and EM SPACE.",
+          "oracle": "Join the original known tokens with one ASCII space, independently of the implementation.",
+          "owner": "Disposable label pilot"
+        },
+        {
+          "id": "labels.normalize.shape_input_idempotence.v1",
+          "kind": "shape_input_idempotence",
+          "claim": "List length, order and duplicates survive, input is unchanged, and repeated application is stable.",
+          "trigger": "Changes to result construction, mutation, ordering or repeated application.",
+          "input_domain": "287 whitespace cases and six permutations with distinguishable ends and an internal duplicate.",
+          "origin_case": "794a9dd4e859280a28e79caa9e20937304714060c13f5dcb965a235df572235a",
+          "oracle": "Compare against the original list, known expected sequence and repeated public API observation.",
+          "owner": "Disposable label pilot"
+        }
+      ]
+    }
+  },
+  "rules": [
+    {
+      "id": "labels.normalize.preserve_unicode_spelling.v1",
+      "feature": "labels.normalize",
+      "status": "pilot_enforced",
+      "case_digest": "d12c5d816d34c065b9d6736a8ea515a103c4abb46e27449344619b51be577c84",
+      "claim": "Whitespace normalization preserves the exact non-whitespace code points, including decomposed letters and compatibility characters.",
+      "trigger": "Apply for changes to the label normalizer or to the character transformations it calls.",
+      "owner": "Disposable label pilot",
+      "origin": "Verified miss on an intentionally seeded implementation.",
+      "examples": [
+        {
+          "input": [
+            "  e\u0301  "
+          ],
+          "expected": [
+            "e\u0301"
+          ]
+        },
+        {
+          "input": [
+            "\t\u1100\u1161   \uff21",
+            "\ufb03",
+            "\u1100\u1161",
+            ""
+          ],
+          "expected": [
+            "\u1100\u1161 \uff21",
+            "\ufb03",
+            "\u1100\u1161",
+            ""
+          ]
+        }
+      ]
+    }
+  ]
+}

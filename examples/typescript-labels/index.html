@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="data:,">
+  <title>Normalize labels</title>
+  <script type="module" src="/dist/app.js"></script>
+</head>
+<body>
+  <main>
+    <h1>Normalize labels</h1>
+    <form>
+      <label for="labels">Labels, one per line</label><br>
+      <textarea id="labels" rows="5"></textarea>
+      <button type="submit">Normalize</button>
+    </form>
+    <ol id="results" aria-label="Normalized labels" aria-live="polite"></ol>
+  </main>
+</body>
+</html>

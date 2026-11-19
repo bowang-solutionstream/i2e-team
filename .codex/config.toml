@@ -1,0 +1,5 @@
+[agents.i2e_team_sol]
+config_file = "../skills/i2e-team/agents/i2e_team_sol.toml"
+
+[agents.i2e_team_astra]
+config_file = "../skills/i2e-team/agents/i2e_team_astra.toml"

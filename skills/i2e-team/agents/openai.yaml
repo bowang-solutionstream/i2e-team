@@ -1,0 +1,4 @@
+interface:
+  display_name: "I2E Team"
+  short_description: "Four-round Critical I2E with local issues and fresh verification"
+  default_prompt: "Use $i2e-team to assess this task, preserve its authority boundaries, and identify the next supported action."
