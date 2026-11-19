@@ -7,11 +7,13 @@ All three I2E workflows read this branch at intake. A **property** describes beh
 | [main](https://github.com/bowang-solutionstream/i2e-team/tree/main) | Latest merged catalog and reflection tool |
 | [i2e-property-libraries](https://github.com/bowang-solutionstream/i2e-team/tree/i2e-property-libraries/properties) | Property records and their history |
 | [i2e-misses-to-rules](https://github.com/bowang-solutionstream/i2e-team/tree/i2e-misses-to-rules/rules) | Rules learned from observed build misses |
-| [i2e-astra-sol](https://github.com/bowang-solutionstream/i2e-team/tree/i2e-astra-sol) · [i2e-fable-opus](https://github.com/bowang-solutionstream/i2e-team/tree/i2e-fable-opus) · [i2e-opus-sonnet](https://github.com/bowang-solutionstream/i2e-team/tree/i2e-opus-sonnet) | Installable model workflows |
+| [i2e-astra-sol](https://github.com/bowang-solutionstream/i2e-team/tree/i2e-astra-sol) | Codex · `$i2e-astra-sol <task>` |
+| [i2e-fable-opus](https://github.com/bowang-solutionstream/i2e-team/tree/i2e-fable-opus) | Claude Code · `/i2e-fable-opus <task>` |
+| [i2e-opus-sonnet](https://github.com/bowang-solutionstream/i2e-team/tree/i2e-opus-sonnet) | Claude Code · `/i2e-opus-sonnet <task>` |
 
 ## Read the latest library
 
-Use Git and Python 3.10 or later. Set `run` to the session's private directory outside the product checkout. Select `main` explicitly. The repository's default branch installs the Astra/Sol workflow.
+Use Git and Python 3.10 or later. Set `run` to the session's private directory outside the product checkout. Select `main` explicitly for the library. Opening the default `i2e-astra-sol` branch in Codex makes `$i2e-astra-sol` available in that checkout.
 
 ```sh
 git clone --quiet --single-branch --branch main https://github.com/bowang-solutionstream/i2e-team.git "$run/library"
