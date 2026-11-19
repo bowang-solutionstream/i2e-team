@@ -26,7 +26,7 @@ missing decision that materially changes the outcome or an action's authority.
 Inspect the worktree and applicable repository guidance, then the relevant source,
 issue, or PR. Note the repository's verification assets, such as a `verify` skill, a
 feature map, or `REVIEW.md`, and look up the matching properties and rules in the
-shared [library](references/library.md). Read enough to establish the behavior and
+shared [library](references/library.md). Pin its current `main` revision and record the relevant IDs. Read enough to establish the behavior and
 proof; do not tour every document. Preserve unrelated changes. For substantial work,
 maintain one compact record using [the run record](templates/run-record.md); reuse
 it across agents. Tiny edits need only a clear outcome and proportionate evidence.
@@ -85,8 +85,6 @@ required proof means incomplete, with the precise gap recorded. A model verdict 
 judgment, not permission to release. Perform authorized issue/PR/ship actions with
 readback under [handoff and shipping](references/handoff.md). Report the outcome,
 evidence, actual routing, material repairs, and remaining limits without empty
-checklist fields or invented cost savings. Add this run's properties and misses to
-the library as candidates, propose a rule for each repeated miss as a separate
-change, and push the library only with the user's approval. A request to reflect on
+checklist fields or invented cost savings. After successful delivery, run [post-delivery reflection](references/library.md#reflect-at-successful-handoff). Publish public-safe candidates to the category branches, then record the merge to `main`, a no-change result, or a pending update. A request to reflect on
 the library follows [the library guide](references/library.md) and changes no
 project repository.

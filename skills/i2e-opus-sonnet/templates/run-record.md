@@ -20,3 +20,5 @@ existing issue or workspace handoff location when suitable. Do not store secrets
 - Authorized external actions and readback:
 - Usage source, input/cached/output, elapsed time, missing accounting:
 - Completion state and next action if incomplete:
+
+Record the library intake commit and selected IDs. At successful handoff, record the reflection result, the published IDs and merged revision, or the reason publication is pending. Keep the completion receipt and raw observations private.
