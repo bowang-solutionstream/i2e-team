@@ -320,6 +320,18 @@ class LibraryTest(unittest.TestCase):
         self.intake(run, success=False)
         self.assertEqual(list(run.iterdir()), [])
 
+    def test_intake_reads_data_without_executing_fetched_tools(self):
+        sentinel = self.root / "remote-code-executed"
+        tripwire = f"from pathlib import Path\nPath({str(sentinel)!r}).touch()\nraise SystemExit(1)\n"
+        for name in ("library.py", "records.py"):
+            (self.checkout / "tools" / name).write_text(tripwire, encoding="utf-8")
+        self.git(self.checkout, "add", "tools")
+        self.git(self.checkout, "commit", "-qm", "Fixture with independent tool changes")
+        self.git(self.checkout, "push", "origin", "main")
+        intake = self.intake(self.root / "run")
+        self.assertEqual(json.loads((intake / "catalog.json").read_bytes())["revision"], self.refs()["main"])
+        self.assertFalse(sentinel.exists())
+
     def test_conflicting_definition_or_alias_blocks_entire_submission(self):
         self.reflect(self.drafts({PROP: markdown(PROP)}))
         alias = "properties/prop-reader-identity.md"

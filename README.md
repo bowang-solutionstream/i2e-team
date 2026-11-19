@@ -23,7 +23,7 @@ library="$intake/library"
 cat "$intake/catalog.json"
 ```
 
-Continue only when the command succeeds. Record the returned snapshot path, the `revision` in `catalog.json` and the relevant record IDs. Read the matching Markdown in `library/properties/` and `library/rules/`. A failed fetch or invalid catalog blocks the run. Report the failure and retry the fetch before continuing. Earlier receipts remain evidence of earlier work. Keep the same snapshot across rounds of this invocation. On resumption, retain the previous receipt and reconcile newly applicable checks with the plan before continuing.
+The installed parser validates records directly from the fetched Git objects. Continue only when the command succeeds. Record the returned snapshot path, the `revision` in `catalog.json` and the relevant record IDs. Read the matching Markdown in `library/properties/` and `library/rules/`. A failed fetch or invalid catalog blocks the run. Report the failure and retry the fetch before continuing. Earlier receipts remain evidence of earlier work. Keep the same snapshot across rounds of this invocation. On resumption, retain the previous receipt and reconcile newly applicable checks with the plan before continuing.
 
 The fetcher makes one fresh, read-only clone from the public `bowang-solutionstream/i2e-team` repository per invocation. It validates both categories at one commit and writes a receipt in a new private directory. From a checkout of this branch, the standalone command is `python3 -B tools/fetch_library.py "$run"`. In Critical I2E, Sol performs the fetch before the probe and passes selected entries locally to Astra.
 

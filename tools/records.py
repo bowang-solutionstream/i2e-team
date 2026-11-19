@@ -82,6 +82,26 @@ def read_entry(name, raw):
     return entry
 
 
+def read_catalog(revision, git_output):
+    entries = {}
+    for item in git_output("ls-tree", "-rz", revision, "--", *KINDS).split(b"\0"):
+        if not item:
+            continue
+        meta, raw_name = item.split(b"\t", 1)
+        mode, kind, blob = meta.decode("ascii").split()
+        name = raw_name.decode("utf-8")
+        if mode != "100644" or kind != "blob":
+            raise ValueError("unexpected Git object in the library catalog")
+        if name in ("properties/README.md", "rules/README.md"):
+            continue
+        if int(git_output("cat-file", "-s", blob)) > LIMIT:
+            raise ValueError("an entry exceeds 64 KiB")
+        entries[name] = read_entry(name, git_output("cat-file", "blob", blob))
+    if len({v.key() for v in entries.values()}) != len(entries):
+        raise ValueError("the catalog contains duplicate definitions")
+    return entries
+
+
 def draft_entries(root):
     if root.is_symlink() or not root.is_dir():
         raise ValueError("select an existing private reflection draft directory")

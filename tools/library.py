@@ -8,7 +8,7 @@ import tempfile
 from pathlib import Path
 
 from delivery import WORKFLOWS, accepted
-from records import KINDS, LIMIT, draft_entries, read_entry, reconcile
+from records import draft_entries, read_catalog, reconcile
 
 REMOTE = "https://github.com/bowang-solutionstream/i2e-team.git"
 BRANCH = {"properties": "i2e-property-libraries", "rules": "i2e-misses-to-rules"}
@@ -43,23 +43,7 @@ def oid(repo, *args, **kwargs):
 
 
 def catalog(repo, revision):
-    entries = {}
-    for item in git(repo, "ls-tree", "-rz", revision, "--", *KINDS).stdout.split(b"\0"):
-        if not item:
-            continue
-        meta, raw_name = item.split(b"\t", 1)
-        mode, kind, blob = meta.decode("ascii").split()
-        name = raw_name.decode("utf-8")
-        if mode != "100644" or kind != "blob":
-            raise ValueError("unexpected Git object in the library catalog")
-        if name in ("properties/README.md", "rules/README.md"):
-            continue
-        if int(oid(repo, "cat-file", "-s", blob)) > LIMIT:
-            raise ValueError("an entry exceeds 64 KiB")
-        entries[name] = read_entry(name, git(repo, "cat-file", "blob", blob).stdout)
-    if len({v.key() for v in entries.values()}) != len(entries):
-        raise ValueError("the catalog contains duplicate definitions")
-    return entries
+    return read_catalog(revision, lambda *args: git(repo, *args).stdout)
 
 
 def fetch(repo):

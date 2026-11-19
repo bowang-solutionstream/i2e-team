@@ -9,6 +9,8 @@ import tempfile
 from pathlib import Path
 from time import gmtime, strftime
 
+from records import KINDS, read_catalog
+
 REMOTE = "https://github.com/bowang-solutionstream/i2e-team.git"
 
 
@@ -25,18 +27,20 @@ def fetch_library(run):
     try:
         subprocess.run(["git", "clone", "--quiet", "--no-tags", "--depth", "1", "--single-branch",
                         "--branch", "main", REMOTE, str(library)], env=env, check=True)
-        head = subprocess.check_output(["git", "-C", str(library), "rev-parse", "HEAD"], env=env, text=True).strip()
-        for category in ("properties", "rules"):
-            if not (library / category).is_dir() or (library / category).is_symlink():
+        def git_output(*args):
+            return subprocess.check_output(["git", "-C", str(library), *args], env=env)
+
+        head = git_output("rev-parse", "HEAD").decode("ascii").strip()
+        for category in KINDS:
+            directory = library / category
+            if directory.is_symlink() or not directory.is_dir():
                 raise ValueError(f"missing catalog directory: {category}")
-        checked = subprocess.run([sys.executable, "-B", str(library / "tools/library.py"), "catalog"],
-                                 cwd=library, env=env, stdout=subprocess.PIPE, check=False)
-        catalog = json.loads(checked.stdout)
-        if checked.returncode and isinstance(catalog, dict):
-            raise ValueError(catalog.get("reason", "catalog validation failed"))
-        if not isinstance(catalog, dict) or catalog.get("revision") != head or not isinstance(catalog.get("entries"), list):
-            raise ValueError("catalog validation did not return the fetched revision and entries")
-        receipt = dict(catalog, source=REMOTE, branch="main", fetched_at=strftime("%Y-%m-%dT%H:%M:%SZ", gmtime()))
+        entries = read_catalog(head, git_output)
+        receipt = {
+            "source": REMOTE, "branch": "main", "revision": head,
+            "fetched_at": strftime("%Y-%m-%dT%H:%M:%SZ", gmtime()),
+            "entries": [dict(entry.fields, path=name) for name, entry in sorted(entries.items())],
+        }
         (intake / "catalog.json").write_text(json.dumps(receipt, indent=2) + "\n", encoding="utf-8")
         return intake
     except BaseException:
