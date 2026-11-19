@@ -176,8 +176,18 @@ class LibraryTest(unittest.TestCase):
         flags = ["--state", state] if kind == "critical" else ["--db", state, "--run", run]
         return ["--workflow", ASTRA, "--i2e", self.controller, *flags], state
 
-    def cli(self, *args, success=True):
-        result = subprocess.run([sys.executable, "-B", self.checkout / "tools/library.py", *args],
+    def intake(self, run, *, success=True):
+        result = subprocess.run([sys.executable, "-B", SOURCE / "tools/fetch_library.py", run],
+                                cwd=self.root, env=self.env, capture_output=True, text=True, timeout=30, check=False)
+        self.assertEqual(result.returncode, 0 if success else 1, (result.stdout, result.stderr))
+        if not success:
+            self.assertIn("BLOCKED", result.stderr)
+            self.assertEqual(result.stdout, "")
+            return None
+        return Path(result.stdout.strip())
+
+    def cli(self, *args, success=True, checkout=None):
+        result = subprocess.run([sys.executable, "-B", (checkout or self.checkout) / "tools/library.py", *args],
                                 cwd=self.root, env=self.env, capture_output=True, text=True, timeout=45, check=False)
         self.assertEqual(result.returncode, 0 if success else 1, (result.stdout, result.stderr))
         try:
@@ -263,6 +273,52 @@ class LibraryTest(unittest.TestCase):
         self.assertEqual(catalog["revision"], self.refs()["main"])
         self.assertEqual([entry["path"] for entry in catalog["entries"]], [PROP])
         self.assertEqual(self.cli("catalog", "--status", "adopted")["entries"], [])
+
+    def test_each_intake_reads_the_latest_merged_properties_and_rules(self):
+        run = self.root / "private run"
+        before = self.intake(run)
+        original = (before / "catalog.json").read_bytes()
+        self.assertEqual(json.loads(original)["revision"], self.seed)
+        entries = self.drafts({PROP: markdown(PROP), RULE: markdown(RULE)})
+        merged = self.cli("reflect", "--entries", entries, *self.handoff(), checkout=before / "library")
+        self.assertEqual(merged["status"], "MERGED")
+        after = self.intake(run)
+        self.assertNotEqual(before, after)
+        latest = json.loads((after / "catalog.json").read_bytes())
+        self.assertEqual((latest["source"], latest["branch"], latest["revision"]), (PUBLIC_URL, "main", merged["main"]))
+        self.assertEqual([e["path"] for e in latest["entries"]], [PROP, RULE])
+        for path in (PROP, RULE):
+            self.assertEqual((after / "library" / path).read_text(), markdown(path))
+        self.assertEqual((before / "catalog.json").read_bytes(), original)
+        self.assertEqual(self.git(before / "library", "rev-parse", "HEAD"), self.seed)
+        heads = self.refs()
+        for drafts in (self.drafts({}), entries):
+            result = self.cli("reflect", "--entries", drafts, *self.handoff(), checkout=after / "library")
+            self.assertEqual(result["status"], "NO_CHANGES")
+            self.assertEqual(self.refs(), heads)
+
+    def test_unreachable_remote_cannot_reuse_a_successful_intake(self):
+        run = self.root / "run"
+        prior = self.intake(run)
+        original = (prior / "catalog.json").read_bytes()
+        self.remote.rename(self.root / "offline.git")
+        self.intake(run, success=False)
+        self.assertEqual(list(run.iterdir()), [prior])
+        self.assertEqual((prior / "catalog.json").read_bytes(), original)
+
+    def test_invalid_or_missing_catalog_blocks_before_work(self):
+        run = self.root / "run"
+        entry = self.checkout / RULE
+        entry.write_text("invalid rule", encoding="utf-8")
+        self.git(self.checkout, "add", RULE)
+        self.git(self.checkout, "commit", "-qm", "Fixture with invalid catalog")
+        self.git(self.checkout, "push", "origin", "main")
+        self.intake(run, success=False)
+        self.git(self.checkout, "rm", "-r", "rules")
+        self.git(self.checkout, "commit", "-qm", "Fixture without the rules directory")
+        self.git(self.checkout, "push", "origin", "main")
+        self.intake(run, success=False)
+        self.assertEqual(list(run.iterdir()), [])
 
     def test_conflicting_definition_or_alias_blocks_entire_submission(self):
         self.reflect(self.drafts({PROP: markdown(PROP)}))

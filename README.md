@@ -13,14 +13,19 @@ All three I2E workflows read this branch at intake. A **property** describes beh
 
 ## Read the latest library
 
-Use Git and Python 3.10 or later. Set `run` to the session's private directory outside the product checkout. Select `main` explicitly for the library. Opening the default `i2e-astra-sol` branch in Codex makes `$i2e-astra-sol` available in that checkout.
+Use Git and Python 3.10 or later. Opening the default `i2e-astra-sol` branch in Codex makes `$i2e-astra-sol` available in that checkout.
+
+Before every new I2E run and whenever a later session resumes one, the coordinator fetches the latest merged properties and rules from `main`. Do this before project inspection, planning, dispatch or edits, including read-only runs. Set `run` to the private run directory outside the product, and `skill` to the directory of the active skill containing `scripts/fetch_library.py`.
 
 ```sh
-git clone --quiet --single-branch --branch main https://github.com/bowang-solutionstream/i2e-team.git "$run/library"
-python3 -B "$run/library/tools/library.py" catalog
+intake=$(python3 -B "$skill/scripts/fetch_library.py" "$run") || exit 1
+library="$intake/library"
+cat "$intake/catalog.json"
 ```
 
-Record the returned `revision` and the matching entry IDs. Pass their scope and oracle or diff trigger to the planner and verifier. Start the next run with a fresh checkout. A resumed run keeps its recorded revision. If fresh intake is offline, identify a cached revision as stale or record `UNAVAILABLE`. In Critical I2E, Sol does this in round 1. Astra receives the selected material locally.
+Continue only when the command succeeds. Record the returned snapshot path, the `revision` in `catalog.json` and the relevant record IDs. Read the matching Markdown in `library/properties/` and `library/rules/`. A failed fetch or invalid catalog blocks the run. Report the failure and retry the fetch before continuing. Earlier receipts remain evidence of earlier work. Keep the same snapshot across rounds of this invocation. On resumption, retain the previous receipt and reconcile newly applicable checks with the plan before continuing.
+
+The fetcher makes one fresh, read-only clone from the public `bowang-solutionstream/i2e-team` repository per invocation. It validates both categories at one commit and writes a receipt in a new private directory. From a checkout of this branch, the standalone command is `python3 -B tools/fetch_library.py "$run"`. In Critical I2E, Sol performs the fetch before the probe and passes selected entries locally to Astra.
 
 Adopted entries apply within their stated scope. Candidates are suggestions. Retired entries remain searchable as history. A project owns its own tests, approved rules and release decisions.
 
@@ -38,13 +43,13 @@ The coordinating session reflects once the requested deliverables, checks and re
 ```sh
 mkdir -p "$run/drafts/properties" "$run/drafts/rules"
 # Codex Critical, using the exact controller and state that verified the delivery
-python3 -B "$run/library/tools/library.py" reflect --workflow i2e-astra-sol \
+python3 -B "$library/tools/library.py" reflect --workflow i2e-astra-sol \
   --entries "$run/drafts" --i2e "$i2e" --state "$state"
 # Codex Direct or Standard, using the verified ledger
-python3 -B "$run/library/tools/library.py" reflect --workflow i2e-astra-sol \
+python3 -B "$library/tools/library.py" reflect --workflow i2e-astra-sol \
   --entries "$run/drafts" --i2e "$i2e" --db "$db" --run "$run_id"
 # Claude Code, using the delivering skill's exact name
-python3 -B "$run/library/tools/library.py" reflect --workflow "$workflow" \
+python3 -B "$library/tools/library.py" reflect --workflow "$workflow" \
   --entries "$run/drafts" --handoff "$run/handoff.json"
 ```
 
@@ -83,4 +88,4 @@ The original public [label verification catalog](https://github.com/bowang-solut
 python3 -B -m unittest discover -s tests -v
 ```
 
-The tests exercise a disposable local Git remote. They can run without GitHub credentials.
+The tests exercise intake, failed refreshes and post-delivery publication against a disposable local Git remote. They can run without GitHub credentials.
