@@ -68,3 +68,24 @@ python3 -B "$i2e" critical --state "$state" status
 ```
 
 Failed checks or acceptance return the same design to Sol for repair. A new independent Sol verification follows on the repaired candidate. One repair and recheck bring the total to six assignments. Return to Astra only for a material change to the accepted design or criteria. Record the change through `plan --replan-reason` and retain prior snapshots. Report local verified acceptance at the exact candidate separately from any release decision.
+
+## Shared library at intake and handoff
+
+For each new run, Sol reads `main` from the public I2E Team repository in a fresh private checkout outside the product. Do this in round 1, before the offline Spec Kit assignment. Record the catalog revision and applicable entry IDs in the probe. Give Astra the selected statements and triggers locally. Use scoped adopted properties as verification oracles and adopted rules as review prompts. Mark candidates as suggestions and skip retired entries. Resume with the pinned revision. If intake is offline, report the cached revision as stale or record `UNAVAILABLE`.
+
+```sh
+git clone --quiet --single-branch --branch main https://github.com/bowang-solutionstream/i2e-team.git "$run/library"
+python3 -B "$run/library/tools/library.py" catalog
+```
+
+At successful handoff, the coordinator inspects verified outcomes for newly demonstrated properties and misses. Run reflection only after the requested delivery succeeds. For Critical work this includes fresh Sol's passing lint, E2E, accepted criteria, `phase=complete` and `acceptance_current=true` on the final candidate. This handoff uses the existing coordinator and adds no agent round. Failed, partial, stale and read-only runs retain observations privately.
+
+Create an empty private drafts directory. For each new public-safe finding copy a property or rule template from the pinned library to the matching draft folder. Provide an independent oracle for a property or a diff trigger, check and observed failure for a rule. Submit new entries as candidates. For another observation of an existing definition, append a distinct public-safe `seen-in`. Inspect exact text before publication. Keep all project evidence, private identifiers and session issues local.
+
+```sh
+mkdir -p "$run/drafts/properties" "$run/drafts/rules"
+python3 -B "$run/library/tools/library.py" reflect --workflow i2e-astra-sol \
+  --entries "$run/drafts" --i2e "$i2e" --state "$state"
+```
+
+For Direct or Standard use `--db "$db" --run "$run_id"` in place of `--state "$state"` with that run's controller. The owner authorizes sanitized entries on `i2e-property-libraries` or `i2e-misses-to-rules` and their merge to `main`. Record `MERGED` with commit and IDs or `NO_CHANGES`. For `PENDING` or `BLOCKED`, keep the drafts, identify the publication gap independently of delivery, and retry once resolved. Shared candidate publication, adoption and project enforcement are separate actions. The [canonical library guide](https://github.com/bowang-solutionstream/i2e-team/blob/main/README.md) covers acceptance evidence, privacy, deduplication and adoption.

@@ -14,6 +14,8 @@ The root coordinator owns progress and evidence. Independent approval requires a
 
 For new Critical work, use the [four-round Critical workflow](references/critical-four-rounds.md). It is shared with the installed I2E Team skill. The Direct and Standard v8 package retains its staged status. Existing runs use their recorded profiles. See [adoption](references/adoption.md).
 
+For every new delivery, Sol reads the shared catalog from `main` during intake. At successful handoff the coordinator publishes new public-safe properties and misses to their category branches and merges them to `main`. Follow the [shared library procedure](references/critical-four-rounds.md#shared-library-at-intake-and-handoff) for the commands, evidence and no-change path.
+
 ## Select the lane
 
 Read [policy](references/policy.md). Establish the objective, authority, repository, current worktree, acceptance, technical risk, and relevant triggers. Use read-only investigation when classification is unclear. Queue urgency orders work. Model selection uses technical risk, architecture, and lane eligibility.

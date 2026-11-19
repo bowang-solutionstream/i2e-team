@@ -22,7 +22,7 @@ At verification, replay the pinned journey through the running app and inspect i
 
 ## Project catalogs and rule promotion
 
-Keep reusable checks, sanitized examples and the feature's verifier under version control. Use the shared skill repository for cross-project contracts and the product repository for product-specific behavior. A new machine needs the pinned checkout, the project verifier and its locked dependencies.
+Keep reusable checks, sanitized examples and the feature's verifier under version control. Read the cross-project catalog from [I2E Team main](https://github.com/bowang-solutionstream/i2e-team/tree/main) at intake. Use the [shared library procedure](critical-four-rounds.md#shared-library-at-intake-and-handoff) to contribute properties or observed misses after verified delivery. The product repository owns its feature contracts and runnable verifiers. A new machine needs the pinned checkout, the project verifier and its locked dependencies.
 
 Run the pinned skill's `scripts/i2e.py select-tools --surface web --language typescript --feature FEATURE --catalog verification/library.json` from the checkout that owns the catalog. The selection records the checkout-relative path, content digest, entry point, check IDs and rule modes. The bundled label catalog also supports the earlier invocation with `--feature labels.normalize`.
 
