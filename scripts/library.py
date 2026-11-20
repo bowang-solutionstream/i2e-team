@@ -180,7 +180,8 @@ def check(path: Path) -> int:
                 counts[(kind, values["status"])] = counts.get((kind, values["status"]), 0) + 1
     for failure in failures:
         print(failure, file=sys.stderr)
-    summary = ", ".join(f"{count} {status} {kind}{'s' if count != 1 else ''}"
+    plurals = {kind: folder for folder, kind in FOLDERS.items()}  # each folder names its kind in the plural
+    summary = ", ".join(f"{count} {status} {kind if count == 1 else plurals[kind]}"
                         for (kind, status), count in sorted(counts.items())) or "no entries"
     print(f"Checked {path}: {summary}; {len(failures)} problem{'s' if len(failures) != 1 else ''}.")
     return int(bool(failures))
