@@ -757,7 +757,18 @@ exec {shlex.quote(real_git)} "$@"
         self.write(prop, VALID_PROPERTY)
         self.write(rule, VALID_RULE)
         result = self.cli("library.py", "check", "--path", str(library))
-        self.assertIn("1 adopted rule", result.stdout)
+        self.assertIn(": 1 candidate property, 1 adopted rule; 0 problems.", result.stdout)
+        # Counts other than one use each kind's plural.
+        extra = {library / "properties" / "prop-csv-round-trip.md":
+                 VALID_PROPERTY.replace("prop-json-round-trip", "prop-csv-round-trip"),
+                 library / "rules" / "rule-reload-keeps-scroll.md":
+                 VALID_RULE.replace("rule-reload-keeps-draft", "rule-reload-keeps-scroll")}
+        for path, text in extra.items():
+            self.write(path, text)
+        result = self.cli("library.py", "check", "--path", str(library))
+        self.assertIn(": 2 candidate properties, 2 adopted rules; 0 problems.", result.stdout)
+        for path in extra:
+            path.unlink()
         cases = {
             "must match the file name": (prop, VALID_PROPERTY.replace("id: prop-json-round-trip", "id: prop-other-name")),
             "status must be": (prop, VALID_PROPERTY.replace("status: candidate", "status: approved")),
